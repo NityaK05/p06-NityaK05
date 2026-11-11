@@ -298,6 +298,11 @@ class Transformer:
             )
             crop_height = source_height
 
+        # Clamp crop dimensions to at least 1 pixel to prevent 0-sized crops
+        # when extreme aspect ratios cause rounding to 0
+        crop_width = max(1, crop_width)
+        crop_height = max(1, crop_height)
+
         crop_left = int(
             round(
                 min(
