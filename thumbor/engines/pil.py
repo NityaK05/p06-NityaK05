@@ -277,6 +277,20 @@ class Engine(BaseEngine):
                     else None
                 )
                 self.image = self.image.quantize(method=quantize_method)
+                
+                # After quantizing, restore the transparency index if the palette contains
+                # fully transparent entries. This is necessary for GIF output, since
+                # quantize() loses the transparency info from image.info.
+                if requested_extension == ".gif" and self.image.mode == "P":
+                    palette_data = self.image.palette.getdata()
+                    if palette_data[0] == "RGBA":
+                        palette_bytes = palette_data[1]
+                        # Find the first fully transparent palette entry
+                        for idx in range(0, len(palette_bytes), 4):
+                            alpha = palette_bytes[idx + 3]
+                            if alpha == 0:  # Found a fully transparent entry
+                                self.image.info["transparency"] = idx // 4
+                                break
 
         ext = requested_extension or self.get_default_extension()
 
